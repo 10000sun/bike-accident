@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,19 +8,49 @@
     <link rel="stylesheet" href="css/css.css">
     <script src="js/js.js"></script>
 </head>
+
 <body>
-    <div class = "header">
+    <div class="header">
         <h1>자전거 사고 다발 지역 찾기</h1>
         <ul>
             <li><a href=#>개요</a></li>
+            <li><a href=#>사용법</a></li>
             <li><a href=#>제작자</a></li>
         </ul>
     </div>
-    <div class = "content">
-        <div id = "map"></div>
-        <script async defer 
-        src="http://maps.google.com/maps/api/js?key=AIzaSyBV0reECtDQjMO5zQgp0BBKbKkUDbcjXy4">
-    </script>
+    <div class="content">
+        <div class=regionbox>
+            <p>지역선택</p>
+            <form action="#" method="get" name="region" style='display:inline'>
+                <select name="Sido" onChange="Sido_change(this.value, Gugun)">
+                    <option>-선택-</option>
+                    <option value="11">서울특별시</option>
+                    <option value="26">부산광역시</option>
+                    <option value="27">대구광역시</option>
+                    <option value="28">인천광역시</option>
+                    <option value="29">광주광역시</option>
+                    <option value="30">대전광역시</option>
+                    <option value="31">울산광역시</option>
+                    <option value="36">세종특별자치시</option>
+                    <option value="41">경기도</option>
+                    <option value="42">강원특별자치도</option>
+                    <option value="43">충청북도</option>
+                    <option value="44">충청남도</option>
+                    <option value="45">전라북도</option>
+                    <option value="46">전라남도</option>
+                    <option value="47">경상북도</option>
+                    <option value="48">경상남도</option>
+                    <option value="50">제주특별자치도</option>
+                </select>
+                <select name="Gugun" onChange="Gugun_change(this.value)">
+                    <option>-선택-</option>
+                </select>
+            </form>
+        </div>
+        <div id="map"></div>
+        <script async defer src="http://maps.google.com/maps/api/js?key=AIzaSyBV0reECtDQjMO5zQgp0BBKbKkUDbcjXy4"
+            type="text/javascript"></script>
     </div>
 </body>
+
 </html>
