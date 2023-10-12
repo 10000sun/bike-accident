@@ -42,12 +42,29 @@
                     <option value="48">경상남도</option>
                     <option value="50">제주특별자치도</option>
                 </select>
-                <select name="Gugun" onChange="Gugun_change(this.value)">
+                <select name="Gugun" >
                     <option>-선택-</option>
                 </select>
+                <select name="searchYearCd" >
+                    <option>-선택-</option>
+                    <option value="2022">2022년</option>
+                    <option value="2021">2021년</option>
+                    <option value="2020">2020년</option>
+                    <option value="2019">2019년</option>
+                    <option value="2018">2018년</option>
+                    <option value="2017">2017년</option>
+                    <option value="2016">2016년</option>
+                    <option value="2015">2015년</option>
+                    <option value="2014">2014년</option>
+                    <option value="2013">2013년</option>
+                    <option value="2012">2012년</option>
+                </select>
+                <input type="button" value="검색" id="searchbtn" onclick="getData()">
             </form>
         </div>
-        <div id="map"></div>
+        <div id="map">
+            <p>사용법 설명 부분</p>
+        </div>
         <script async defer src="http://maps.google.com/maps/api/js?key=AIzaSyBV0reECtDQjMO5zQgp0BBKbKkUDbcjXy4"
             type="text/javascript"></script>
     </div>

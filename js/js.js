@@ -1,7 +1,8 @@
 const API_KEY = `vDX%2FUI2gzJeT6CJM1otu39l%2Byx0prw9aeTusQVSZCK9QkcGOX9oViiRL8uZLh7ftTKTxfEjlAKtdRpbG%2BSk3WA%3D%3D`;
 
-//const siDo=whatsido(); //나중에 지역 고를때 쓸 함수
-//const guGun=whatguGun(); //나중에 지역 고를때 쓸 함수
+//const siDo=whatsido(); //나중에 지역 고를때 쓸 변수
+//const guGun=whatguGun(); //나중에 지역 고를때 쓸 변수
+// *년도도 하나 만들것
 
 async function getData() {
   const url = `https://apis.data.go.kr/B552061/frequentzoneBicycle/getRestFrequentzoneBicycle?ServiceKey=${API_KEY}&searchYearCd=2015&siDo=11&guGun=680&type=json&numOfRows=10&pageNo=1`;
@@ -57,9 +58,9 @@ function drawMap(locations) {
   }
 }
 
-getData();
 
-// 지역선택 변수
+
+// 지역선택 변수 *수정필요
 var Sido_num = new Array(11,26,27,28,29,30,31,36,41,42,43,44,45,46,47,48,50);
  var Sido_name = new Array('서울특별시','부산광역시','대구광역시','인천광역시','광주광역시','대전광역시','울산광역시','세종특별자치시','경기도','강원특별자치도','충청북도','충청남도','전라북도','전라남도','경상북도','경상남도','제주특별자치도');
 
