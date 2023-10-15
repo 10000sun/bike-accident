@@ -3,5 +3,8 @@
 공공데이터 포탈 api를 이용하여 자전거 사고 다발 지역을 긁어모으고,
 자바스크립트 함수를 이용해 지역별로 나타냈습니다.
 
+링크를 클릭하면 사이트로 바로 이동됩니다.
+https://10000sun.github.io/bike-accident
+
 This is a site that I created with a friend who was hospitalized due to a bicycle accident. 
 We used the public data portal api to rake together bicycle accident-prone areas and use the JavaScript function to represent them by region.
