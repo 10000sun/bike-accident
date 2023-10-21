@@ -153,7 +153,7 @@ function Sido_change(key, sel) {
 function explain(){
   Swal.fire({
     title: '개요',
-    text: '친구들이 평소 자전거를 자주 타는데, 최근 자전거 및 킥보드 사고가 증가하여 사고 예방과 경각심을 위해 제작했습니다.\n HTML 및 자바스크립트로 제작되었습니다.',
+    text: '최근 자전거 및 킥보드 사고가 증가하여 사고 예방과 경각심을 위해 제작했습니다. 지역과 연도를 선택하면 지역별로 자전거 사고가 많이난 구역에 핀이 찍힙니다. HTML 및 자바스크립트로 제작되었습니다.',
     icon: 'info',
     confirmButtonText: '확인'
   })
@@ -162,7 +162,7 @@ function explain(){
 function whoiam(){
   Swal.fire({
     title: '제작자',
-    text: '제작자의 정보 및 깃허브, 블로그는 최하단 링크에서 확인하실 수 있습니다.',
+    text: '제작자의 깃허브, 블로그는 최하단 링크에서 확인하실 수 있습니다.',
     icon: 'info',
     confirmButtonText: '확인'
   })
