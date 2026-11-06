@@ -1,85 +1,81 @@
 const API_KEY = `vDX%2FUI2gzJeT6CJM1otu39l%2Byx0prw9aeTusQVSZCK9QkcGOX9oViiRL8uZLh7ftTKTxfEjlAKtdRpbG%2BSk3WA%3D%3D`;
 
 async function getData() {
+  const sel_sido = document.getElementById('Sido').value;
+  const sel_gugun = document.getElementById('Gugun').value;
+  const sel_year = document.getElementById('SearchYear').value;
 
-  // 각각 시도, 구군, 년도 값 변수에 할당
-  const sel_sido = document.getElementById('Sido').options[document.getElementById('Sido').selectedIndex].value;
-  const sel_gugun = document.getElementById('Gugun').options[document.getElementById('Gugun').selectedIndex].value;
-  const sel_year = document.getElementById('SearchYear').options[document.getElementById('SearchYear').selectedIndex].value;
-
-  if(sel_sido == ""){
+  if (sel_sido == "" || sel_gugun == "") {
     alert("지역을 선택하세요.");
     return;
-  } else if(sel_gugun == ""){
-    alert("지역을 선택하세요.");
-    return;
-  } else if(sel_year == ""){
+  }
+  if (sel_year == "") {
     alert("년도를 선택하세요.");
     return;
   }
+  if (!window.google) {
+    alert("지도를 불러오는 중입니다. 잠시 후 다시 시도해주세요.");
+    return;
+  }
 
-  // api 불러올때 위 변수 집어넣어서 부르기
-  const url = `https://apis.data.go.kr/B552061/frequentzoneBicycle/getRestFrequentzoneBicycle?ServiceKey=${API_KEY}&SearchYearCd=${sel_year}&siDo=${sel_sido}&guGun=${sel_gugun}&type=json&numOfRows=10&pageNo=1`;
+  const PAGE = 100;
+  const base = `https://apis.data.go.kr/B552061/frequentzoneBicycle/getRestFrequentzoneBicycle?ServiceKey=${API_KEY}&SearchYearCd=${sel_year}&siDo=${sel_sido}&guGun=${sel_gugun}&type=json&numOfRows=${PAGE}`;
 
-  const response = await fetch(url);
-  const data = await response.json();
-  const locations = data.items.item.map((spot) => [
-    spot.spot_nm,
-    spot.la_crd,
-    spot.lo_crd,
-  ]);
+  // 결과가 없으면 item이 없고, 1건이면 배열이 아닌 객체로 올 수 있어 concat으로 합침
+  let list = [];
+  try {
+    for (let page = 1; ; page++) {
+      const response = await fetch(`${base}&pageNo=${page}`);
+      if (!response.ok) throw new Error(response.status);
+      const data = await response.json();
+      list = list.concat(data?.items?.item ?? []);
+      if (page * PAGE >= (data.totalCount ?? 0)) break;
+    }
+  } catch (e) {
+    alert("데이터를 불러오지 못했습니다. 잠시 후 다시 시도해주세요.");
+    return;
+  }
 
-  // 데이터에 값이 없을때 경고문
-  if(data.items.item.length == 0){
+  if (list.length == 0) {
     alert("찾으시는 결과가 없습니다. 다른 지역이나 년도를 선택해주세요.");
     return;
   }
 
-  drawMap(locations);
+  drawMap(list.map((spot) => [spot.spot_nm, spot.la_crd, spot.lo_crd]));
 }
 
+// locations = [ ["지역이름", 위도, 경도], ... ]
 function drawMap(locations) {
-
-  // 매개변수 형태
-  // location = [ ["지역이름", 위도, 경도],
-  //              ["지역이름", 위도, 경도]
-  //            ]
   const map = new google.maps.Map(document.getElementById("map"), {
-    zoom: 13,
-    center: new google.maps.LatLng(locations[0][1], locations[0][2]),
     mapTypeId: google.maps.MapTypeId.ROADMAP,
   });
-
   const infowindow = new google.maps.InfoWindow();
+  const bounds = new google.maps.LatLngBounds();
 
-  let marker, i;
+  locations.forEach(([name, lat, lng]) => {
+    const position = new google.maps.LatLng(lat, lng);
+    const marker = new google.maps.Marker({ position, map });
+    bounds.extend(position);
 
-  // 위치별 마크 생성
-  for (i = 0; i < locations.length; i++) {
-    marker = new google.maps.Marker({
-      position: new google.maps.LatLng(locations[i][1], locations[i][2]),
-      map: map,
+    // 핀 클릭했을 때 보여주는 정보 (텍스트로만 넣어 HTML 해석 방지)
+    marker.addListener("click", () => {
+      const div = document.createElement("div");
+      div.textContent = name;
+      infowindow.setContent(div);
+      infowindow.open(map, marker);
     });
+  });
 
-    // 핀 클릭했을 때 보여주는 정보
-    google.maps.event.addListener(
-      marker,
-      "click",
-      (function (marker, i) {
-        return function () {
-          infowindow.setContent(locations[i][0]);
-          infowindow.open(map, marker);
-        };
-      })(marker, i)
-    );
-  }
+  // 모든 핀이 보이게 맞추되, 핀이 1개일 때 너무 확대되지 않게 제한
+  map.fitBounds(bounds);
+  google.maps.event.addListenerOnce(map, "idle", () => {
+    if (map.getZoom() > 16) map.setZoom(16);
+  });
 }
 
-
-
-// 지역선택 변수 *수정필요
-var Sido_num = new Array(11, 26, 27, 28, 29, 30, 31, 36, 41, 42, 43, 44, 45, 46, 47, 48, 50);
-var Sido_name = new Array('서울특별시', '부산광역시', '대구광역시', '인천광역시', '광주광역시', '대전광역시', '울산광역시', '세종특별자치시', '경기도', '강원특별자치도', '충청북도', '충청남도', '전라북도', '전라남도', '경상북도', '경상남도', '제주특별자치도');
+// 연도 목록: 작년부터 2012년까지 (데이터가 없으면 "결과 없음" 안내가 뜸)
+const yearSelect = document.getElementById('SearchYear');
+for (let y = new Date().getFullYear() - 1; y >= 2012; y--) yearSelect.add(new Option(`${y}년`, y));
 
 var Gugun_num = new Array();
 var Gugun_name = new Array();
@@ -90,8 +86,8 @@ Gugun_name[11] = new Array('강남구', '강동구', '강북구', '강서구', '
 Gugun_num[26] = new Array(440, 410, 710, 290, 170, 260, 230, 320, 530, 380, 140, 500, 470, 200, 110, 350);
 Gugun_name[26] = new Array('강서구', '금정구', '기장군', '남구', '동구', '동래구', '부산진구', '북구', '사상구', '사하구', '서구', '수영구', '연제구', '영도구', '중구', '해운대구');
 
-Gugun_num[27] = new Array(200, 290, 710, 140, 230, 170, 260, 110);
-Gugun_name[27] = new Array('남구', '달서구', '달성군', '동구', '북구', '서구', '수성구', '중구');
+Gugun_num[27] = new Array(720, 200, 290, 710, 140, 230, 170, 260, 110);
+Gugun_name[27] = new Array('군위군', '남구', '달서구', '달성군', '동구', '북구', '서구', '수성구', '중구');
 
 Gugun_num[28] = new Array(710, 245, 170, 200, 140, 237, 260, 185, 720, 110);
 Gugun_name[28] = new Array('강화군', '계양구', '미추홀구', '남동구', '동구', '부평구', '서구', '연수구', '옹진군', '중구');
@@ -105,11 +101,11 @@ Gugun_name[30] = new Array('대덕구', '동구', '서구', '유성구', '중구
 Gugun_num[31] = new Array(140, 170, 200, 710, 110);
 Gugun_name[31] = new Array('남구', '동구', '북구', '울주군', '중구');
 
-Gugun_num[36] = new Array(110);
+Gugun_num[36] = [110];
 Gugun_name[36] = new Array('세종특별자치시');
 
 Gugun_num[41] = new Array(820, 281, 283, 285, 287, 290, 210, 610, 310, 410, 570, 360, 250, 197, 199, 195, 135, 131, 133, 113, 117, 111, 115, 390, 270, 273, 271, 550, 173, 171, 630, 830, 730, 670, 800, 370, 460, 463, 465, 461, 430, 150, 500, 480, 220, 810, 650, 450, 590);
-Gugun_name[41] = new Array('가평군', '고양시덕양구', '고양시일산구', '고양시일산동구', '고양시일산서구', '과천시', '광명시', '광주시', '군포시', '김포시', '남양주시', '동두천시', '부천시소사구', '부천시오정구', '부천시원미구', '성남시분당구', '성남시수정구', '성남시중원구', '수원시권선구', '수원시영통구', '수원시장안구', '수원시팔달구', '시흥시', '안산시', '안산시단원구', '안산시상록구', '안성시', '안양시동안구', '안양시만안구', '양주시', '양평군', '여주군', '여주시', '연천군', '오산시', '용인시', '용인시기흥구', '용인시수지구', '용인시처인구', '의왕시', '의정부시', '이천시', '파주시', '평택시', '포천군', '포천시', '하남시', '화성시');
+Gugun_name[41] = new Array('가평군', '고양시덕양구', '고양시일산구', '고양시일산동구', '고양시일산서구', '과천시', '광명시', '광주시', '구리시', '군포시', '김포시', '남양주시', '동두천시', '부천시소사구', '부천시오정구', '부천시원미구', '성남시분당구', '성남시수정구', '성남시중원구', '수원시권선구', '수원시영통구', '수원시장안구', '수원시팔달구', '시흥시', '안산시', '안산시단원구', '안산시상록구', '안성시', '안양시동안구', '안양시만안구', '양주시', '양평군', '여주군', '여주시', '연천군', '오산시', '용인시', '용인시기흥구', '용인시수지구', '용인시처인구', '의왕시', '의정부시', '이천시', '파주시', '평택시', '포천군', '포천시', '하남시', '화성시');
 
 Gugun_num[42] = new Array(150, 820, 170, 230, 210, 800, 830, 750, 130, 810, 770, 780, 110, 190, 760, 720, 790, 730);
 Gugun_name[42] = new Array('강릉시', '고성군', '동해시', '삼척시', '속초시', '양구군', '양양군', '영월군', '원주시', '인제군', '정선군', '철원군', '춘천시', '태백시', '평창군', '홍천군', '화천군', '횡성군');
@@ -136,34 +132,17 @@ Gugun_num[50] = new Array(130, 110);
 Gugun_name[50] = new Array('서귀포시', '제주시');
 
 // 지역선택 함수
-
 function Sido_change(key, sel) {
+  sel.length = 1; // 첫 번째 "구군 선택" 옵션만 남김
+  sel.selectedIndex = 0;
   if (key == '') return;
-  var name = Gugun_name[key];
-  var val = Gugun_num[key];
-
-  for (i = sel.length - 1; i >= 0; i--)
-    sel.options[i] = null;
-  sel.options[0] = new Option('구군 선택 (예:강남구)', '', '', 'true');
-  for (i = 0; i < name.length; i++) {
-    sel.options[i + 1] = new Option(name[i], val[i]);
-  }
+  Gugun_name[key].forEach((name, i) => sel.add(new Option(name, Gugun_num[key][i])));
 }
 
 function explain(){
-  Swal.fire({
-    title: '개요',
-    text: '최근 자전거 및 킥보드 사고가 증가하여 사고 예방과 경각심을 위해 제작했습니다. 지역과 연도를 선택하면 지역별로 자전거 사고가 많이난 구역에 핀이 찍힙니다. HTML 및 자바스크립트로 제작되었습니다.',
-    icon: 'info',
-    confirmButtonText: '확인'
-  })
+  alert('최근 자전거 및 킥보드 사고가 증가하여 사고 예방과 경각심을 위해 제작했습니다. 지역과 연도를 선택하면 지역별로 자전거 사고가 많이난 구역에 핀이 찍힙니다. HTML 및 자바스크립트로 제작되었습니다.');
 }
 
 function whoiam(){
-  Swal.fire({
-    title: '제작자',
-    text: '제작자의 깃허브, 블로그는 최하단 링크에서 확인하실 수 있습니다.',
-    icon: 'info',
-    confirmButtonText: '확인'
-  })
+  alert('제작자의 깃허브, 블로그는 최하단 링크에서 확인하실 수 있습니다.');
 }
