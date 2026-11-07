@@ -8,63 +8,65 @@
     <title>자전거 사고 다발 지역 찾기</title>
     <link rel="stylesheet" href="css/css.css">
     <link href="img/title.png" rel="shortcut icon" type="image/x-icon">
+    <!-- 두 스크립트 모두 defer: js.js가 먼저 실행되어 initMap이 정의된 뒤 지도 스크립트가 callback으로 호출 -->
     <script defer src="js/js.js"></script>
+    <script defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBV0reECtDQjMO5zQgp0BBKbKkUDbcjXy4&callback=initMap"></script>
 </head>
 
 <body>
-    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBV0reECtDQjMO5zQgp0BBKbKkUDbcjXy4"
-    type="text/javascript"></script>
-    <div class="header">
-        <h1>자전거 사고 다발 지역 찾기</h1>
-        <ul>
-            <li><a href=# onclick='explain()'>개요</a></li>
-            <li><a href=# onclick='whoiam()'>제작자</a></li>
-        </ul>
+  <header class="header">
+    <h1>자전거 사고 다발 지역 찾기</h1>
+    <div class="controls">
+      <select id="Sido" name="Sido" aria-label="시도" onchange="Sido_change(this.value, document.getElementById('Gugun'))">
+        <option value="">시도 선택</option>
+        <option value="11">서울특별시</option>
+        <option value="26">부산광역시</option>
+        <option value="27">대구광역시</option>
+        <option value="28">인천광역시</option>
+        <option value="29">광주광역시</option>
+        <option value="30">대전광역시</option>
+        <option value="31">울산광역시</option>
+        <option value="36">세종특별자치시</option>
+        <option value="41">경기도</option>
+        <option value="42">강원특별자치도</option>
+        <option value="43">충청북도</option>
+        <option value="44">충청남도</option>
+        <option value="45">전북특별자치도</option>
+        <option value="46">전라남도</option>
+        <option value="47">경상북도</option>
+        <option value="48">경상남도</option>
+        <option value="50">제주특별자치도</option>
+      </select>
+      <select id="Gugun" name="Gugun" aria-label="구군">
+        <option value="">구군 선택</option>
+      </select>
+      <select id="SearchYear" name="SearchYear" aria-label="연도">
+        <option value="">연도 선택</option>
+      </select>
+      <button type="button" id="searchbtn" onclick="getData()">검색</button>
     </div>
-    <div class="content">
-        <div class=regionbox>
-            <p>지역선택</p>
-                <select name="Sido" id="Sido" aria-label="시도" onChange="Sido_change(this.value, Gugun)">
-                    <option value="">시도 선택 (예:서울특별시)</option>
-                    <option value="11">서울특별시</option>
-                    <option value="26">부산광역시</option>
-                    <option value="27">대구광역시</option>
-                    <option value="28">인천광역시</option>
-                    <option value="29">광주광역시</option>
-                    <option value="30">대전광역시</option>
-                    <option value="31">울산광역시</option>
-                    <option value="36">세종특별자치시</option>
-                    <option value="41">경기도</option>
-                    <option value="42">강원특별자치도</option>
-                    <option value="43">충청북도</option>
-                    <option value="44">충청남도</option>
-                    <option value="45">전북특별자치도</option>
-                    <option value="46">전라남도</option>
-                    <option value="47">경상북도</option>
-                    <option value="48">경상남도</option>
-                    <option value="50">제주특별자치도</option>
-                </select>
-                <select name="Gugun" id="Gugun" aria-label="구군">
-                    <option value="">구군 선택 (예:강남구)</option>
-                </select>
-                <select name="SearchYear" id="SearchYear" aria-label="연도">
-                    <option value="">연도 선택</option>
-                </select>
-                <input type="button" value="검색" id="searchbtn" onclick="getData()">
-        </div>
-        <div id="map">
-            <h1>사용법</h1>
-            <p>찾고싶은 지역을 시, 구, 군 순서로 선택합니다. <br> 찾고싶은 년도를 선택합니다. <br> 검색을 누르고 지도를 확인합니다.</p>
-            <h1>주의사항</h1>
-            <p>데이터가 완벽하지 않습니다. 찾고싶은 지역 및 년도의 데이터가 없을 수 있으니 양해 부탁드립니다. <br>버그 및 작동 문의는 깃허브 또는 lws302@naver.com로 연락부탁드립니다. <br><a href = "https://www.github.com/10000sun/bike-accident" target="_blank" class="github">이곳</a>&nbsp;을 누르면 소스코드 페이지로 이동합니다.</p>
-        </div>
+    <div class="links">
+      <button type="button" class="about-btn" onclick="explain()">개요</button>
+      <a href="https://github.com/10000sun" target="_blank" rel="noopener" title="GitHub"><img src="img/github.png" alt="GitHub"></a>
     </div>
-    <div class = "footer">
-        <div class = "icon">
-            <a href="https://github.com/10000sun" target="_blank" title="이미지를 클릭하시면 깃허브로 이동됩니다."><img src="img/github.png" alt="GitHub"></a>
-            <a href="https://10000sun.tistory.com/" target="_blank" title="이미지를 클릭하시면 블로그로 이동됩니다."><img src="img/tistory.png" alt="Tistory"></a>
-        </div>
-    </div>
+  </header>
+
+  <main class="content">
+    <div id="map" role="application" aria-label="자전거 사고 다발 지역 지도"></div>
+    <aside id="panel">
+      <h2 id="panel-title">검색 결과</h2>
+      <p id="panel-hint">시도, 구군, 연도를 고른 뒤 검색을 누르세요.</p>
+      <ol id="spots"></ol>
+    </aside>
+  </main>
+
+  <dialog id="about">
+    <h2>개요</h2>
+    <p>최근 자전거 및 킥보드 사고가 증가하여 사고 예방과 경각심을 위해 제작했습니다. 지역과 연도를 선택하면 지역별로 자전거 사고가 많이 난 구역에 핀이 찍힙니다.</p>
+    <p>데이터가 완벽하지 않아 찾으시는 지역·연도의 데이터가 없을 수 있습니다. 버그 및 작동 문의는 <a href="https://www.github.com/10000sun/bike-accident" target="_blank" rel="noopener">GitHub</a> 또는 lws302@naver.com 으로 연락 부탁드립니다.</p>
+    <p class="source">출처: 한국도로교통공단 자전거사고 다발지역정보 (공공데이터포털)</p>
+    <form method="dialog"><button>닫기</button></form>
+  </dialog>
 </body>
 
 </html>

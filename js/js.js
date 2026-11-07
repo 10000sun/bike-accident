@@ -1,7 +1,32 @@
+let map, infowindow, markers = [];
+
+// 구글 지도 스크립트가 로드되면 호출됨 (index.html의 callback=initMap)
+function initMap() {
+  map = new google.maps.Map(document.getElementById("map"), {
+    center: { lat: 36.3, lng: 127.8 },
+    zoom: 7,
+    mapTypeControl: false,
+    streetViewControl: false,
+    fullscreenControl: false,
+  });
+  infowindow = new google.maps.InfoWindow();
+}
+
+const el = (tag, cls, text = "") => {
+  const e = document.createElement(tag);
+  e.className = cls;
+  e.textContent = text;
+  return e;
+};
+
+const detail = (s) =>
+  `사고 ${s.occrrnc_cnt}건 (사상자 ${s.caslt_cnt}명)\n사망 ${s.dth_dnv_cnt} · 중상 ${s.se_dnv_cnt} · 경상 ${s.sl_dnv_cnt} · 부상신고 ${s.wnd_dnv_cnt}`;
+
 async function getData() {
-  const sel_sido = document.getElementById('Sido').value;
-  const sel_gugun = document.getElementById('Gugun').value;
-  const sel_year = document.getElementById('SearchYear').value;
+  const sido = document.getElementById('Sido');
+  const gugun = document.getElementById('Gugun');
+  const year = document.getElementById('SearchYear');
+  const sel_sido = sido.value, sel_gugun = gugun.value, sel_year = year.value;
 
   if (sel_sido == "" || sel_gugun == "") {
     alert("지역을 선택하세요.");
@@ -11,7 +36,7 @@ async function getData() {
     alert("년도를 선택하세요.");
     return;
   }
-  if (!window.google) {
+  if (!map) {
     alert("지도를 불러오는 중입니다. 잠시 후 다시 시도해주세요.");
     return;
   }
@@ -27,42 +52,61 @@ async function getData() {
     return;
   }
 
-  if (list.length == 0) {
-    alert("찾으시는 결과가 없습니다. 다른 지역이나 년도를 선택해주세요.");
-    return;
-  }
-
-  drawMap(list);
+  // 세종처럼 시도와 구군 이름이 같으면 한 번만 표시
+  const area = [...new Set([sido.selectedOptions[0].text, gugun.selectedOptions[0].text])].join(" ");
+  const name = `${area} ${sel_year}년`;
+  drawMap(list, list.length ? `${name} · ${list.length}곳` : name, area + " ");
 }
 
-// spots = API 응답의 item 배열
-function drawMap(spots) {
-  const map = new google.maps.Map(document.getElementById("map"), {
-    mapTypeId: google.maps.MapTypeId.ROADMAP,
-  });
-  const infowindow = new google.maps.InfoWindow();
-  const bounds = new google.maps.LatLngBounds();
+// spots = data/<연도>.json 의 지점 배열 (사고 많은 순으로 목록과 핀을 그림), prefix = 목록에서 생략할 지역명
+function drawMap(spots, title, prefix = "") {
+  const ol = document.getElementById("spots");
+  ol.replaceChildren();
+  markers.forEach((m) => m.setMap(null));
+  markers = [];
+  infowindow.close();
 
-  spots.forEach((spot) => {
+  document.getElementById("panel-title").textContent = title;
+  const hint = document.getElementById("panel-hint");
+  hint.textContent = "찾으시는 결과가 없습니다. 다른 지역이나 년도를 선택해주세요.";
+  hint.hidden = spots.length > 0;
+
+  const bounds = new google.maps.LatLngBounds();
+  [...spots].sort((a, b) => b.occrrnc_cnt - a.occrrnc_cnt).forEach((spot, i) => {
     const position = new google.maps.LatLng(spot.la_crd, spot.lo_crd);
     const marker = new google.maps.Marker({ position, map });
     bounds.extend(position);
+    markers.push(marker);
 
-    // 핀 클릭했을 때 보여주는 정보 (텍스트로만 넣어 HTML 해석 방지)
-    marker.addListener("click", () => {
-      const div = document.createElement("div");
+    // 텍스트로만 넣어 HTML 해석 방지
+    const show = () => {
+      const div = el("div", "", `${spot.spot_nm}\n${detail(spot)}`);
       div.style.whiteSpace = "pre-line";
-      div.textContent = `${spot.spot_nm}\n사고 ${spot.occrrnc_cnt}건 (사상자 ${spot.caslt_cnt}명)\n사망 ${spot.dth_dnv_cnt} · 중상 ${spot.se_dnv_cnt} · 경상 ${spot.sl_dnv_cnt} · 부상신고 ${spot.wnd_dnv_cnt}`;
       infowindow.setContent(div);
       infowindow.open(map, marker);
-    });
+    };
+    marker.addListener("click", show);
+
+    const btn = el("button", "spot");
+    btn.type = "button";
+    btn.append(el("span", "rank", i + 1), el("span", "name", spot.spot_nm.startsWith(prefix) ? spot.spot_nm.slice(prefix.length) : spot.spot_nm), el("span", "meta", detail(spot)));
+    btn.onclick = () => {
+      map.panTo(position);
+      map.setZoom(16);
+      show();
+    };
+    const li = document.createElement("li");
+    li.append(btn);
+    ol.append(li);
   });
 
   // 모든 핀이 보이게 맞추되, 핀이 1개일 때 너무 확대되지 않게 제한
-  map.fitBounds(bounds);
-  google.maps.event.addListenerOnce(map, "idle", () => {
-    if (map.getZoom() > 16) map.setZoom(16);
-  });
+  if (spots.length) {
+    map.fitBounds(bounds);
+    google.maps.event.addListenerOnce(map, "idle", () => {
+      if (map.getZoom() > 16) map.setZoom(16);
+    });
+  }
 }
 
 // 연도 목록: 작년부터 2012년까지 (데이터가 없으면 "결과 없음" 안내가 뜸)
@@ -132,9 +176,5 @@ function Sido_change(key, sel) {
 }
 
 function explain(){
-  alert('최근 자전거 및 킥보드 사고가 증가하여 사고 예방과 경각심을 위해 제작했습니다. 지역과 연도를 선택하면 지역별로 자전거 사고가 많이난 구역에 핀이 찍힙니다. HTML 및 자바스크립트로 제작되었습니다.');
-}
-
-function whoiam(){
-  alert('제작자의 깃허브, 블로그는 최하단 링크에서 확인하실 수 있습니다.');
+  document.getElementById('about').showModal();
 }
