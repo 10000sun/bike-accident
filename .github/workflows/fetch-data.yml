@@ -1,0 +1,38 @@
+name: 사고 데이터 받기
+
+on:
+  workflow_dispatch:
+    inputs:
+      from:
+        description: '시작 연도 (비우면 2012)'
+        required: false
+      to:
+        description: '끝 연도 (비우면 작년). 시작 연도를 적었다면 같이 적기'
+        required: false
+
+permissions:
+  contents: write
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - name: data/*.json 만들기 (이미 받은 지역은 건너뜀)
+        env:
+          DATA_GO_KR_KEY: ${{ secrets.DATA_GO_KR_KEY }}
+          FROM: ${{ inputs.from }}
+          TO: ${{ inputs.to }}
+        run: node scripts/fetch-data.js $FROM $TO
+      # 일일 호출 한도 등으로 중간에 실패해도 받은 만큼은 저장해서 다음 실행에서 이어받는다
+      - name: 변경된 data 커밋
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data
+          if ! git diff --cached --quiet; then
+            git commit -m "Update accident data"
+            git push
+          fi

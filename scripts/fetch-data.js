@@ -19,7 +19,7 @@ const regions = new Function(
   src.slice(src.indexOf('var Gugun_num'), src.indexOf('// 지역선택 함수')) + ';return Gugun_num'
 )();
 
-const [from = 2012, to = new Date().getFullYear() - 1] = process.argv.slice(2).map(Number);
+const [from = 2012, to = new Date().getFullYear() - 1] = process.argv.slice(2).filter(Boolean).map(Number);
 const PAGE = 100;
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 // 2023년부터 강원(42→51), 전북(45→52) 시도 코드가 바뀜 (공식 코드표 3.2)

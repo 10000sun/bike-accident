@@ -9,7 +9,10 @@ https://10000sun.github.io/bike-accident
 This is a site that I created with a friend who was hospitalized due to a bicycle accident. 
 We used the public data portal api to rake together bicycle accident-prone areas and use the JavaScript function to represent them by region.
 
-## 데이터 갱신 (개발용)
+## 데이터 갱신
+**GitHub Actions(권장):** 저장소 Settings → Secrets and variables → Actions에 `DATA_GO_KR_KEY`(공공데이터포털 인증키)를 등록하고, Actions 탭의 "사고 데이터 받기"에서 Run workflow를 누르면 `data/*.json`이 자동으로 커밋됩니다. 일일 호출 한도에 걸리면 다음 날 다시 누르면 이어서 받습니다.
+
+**내 컴퓨터에서:**
 사이트는 API를 직접 부르지 않고 `data/<연도>.json`을 읽습니다. 인증키가 저장소에 들어가지 않습니다.
 ```bash
 DATA_GO_KR_KEY='공공데이터포털_인증키' node scripts/fetch-data.js   # 2012년 ~ 작년 (Node 18+)
