@@ -22,6 +22,16 @@ const el = (tag, cls, text = "") => {
 const detail = (s) =>
   `사고 ${s.occrrnc_cnt}건 (사상자 ${s.caslt_cnt}명)\n사망 ${s.dth_dnv_cnt} · 중상 ${s.se_dnv_cnt} · 경상 ${s.sl_dnv_cnt} · 부상신고 ${s.wnd_dnv_cnt}`;
 
+// 지점명으로 만든 검색어에 선택한 연도의 기간 필터를 붙인 뉴스 검색 링크
+function newsLinks(spot, year) {
+  const q = spot.spot_nm.replace(/[()]/g, " ").replace(/부근/g, " ").replace(/\s+/g, " ").trim() + " 자전거 사고";
+  const enc = encodeURIComponent(q);
+  return {
+    naver: `https://search.naver.com/search.naver?where=news&query=${enc}&nso=so:r,p:from${year}0101to${year}1231`,
+    google: `https://www.google.com/search?q=${enc}&tbm=nws&tbs=${encodeURIComponent(`cdr:1,cd_min:1/1/${year},cd_max:12/31/${year}`)}`,
+  };
+}
+
 async function getData() {
   const sido = document.getElementById('Sido');
   const gugun = document.getElementById('Gugun');
@@ -55,11 +65,11 @@ async function getData() {
   // 세종처럼 시도와 구군 이름이 같으면 한 번만 표시
   const area = [...new Set([sido.selectedOptions[0].text, gugun.selectedOptions[0].text])].join(" ");
   const name = `${area} ${sel_year}년`;
-  drawMap(list, list.length ? `${name} · ${list.length}곳` : name, area + " ");
+  drawMap(list, list.length ? `${name} · ${list.length}곳` : name, area + " ", sel_year);
 }
 
-// spots = data/<연도>.json 의 지점 배열 (사고 많은 순으로 목록과 핀을 그림), prefix = 목록에서 생략할 지역명
-function drawMap(spots, title, prefix = "") {
+// spots = data/<연도>.json 의 지점 배열 (사고 많은 순으로 목록과 핀을 그림), prefix = 목록에서 생략할 지역명, year = 뉴스 검색 기간
+function drawMap(spots, title, prefix = "", year) {
   const ol = document.getElementById("spots");
   ol.replaceChildren();
   markers.forEach((m) => m.setMap(null));
@@ -96,7 +106,17 @@ function drawMap(spots, title, prefix = "") {
       show();
     };
     const li = document.createElement("li");
-    li.append(btn);
+    const links = newsLinks(spot, year);
+    const news = el("details", "news");
+    news.append(el("summary", "", "관련 뉴스"));
+    [["네이버 뉴스", links.naver], ["구글 뉴스", links.google]].forEach(([text, href]) => {
+      const a = el("a", "", `${text} (${year}년)`);
+      a.href = href;
+      a.target = "_blank";
+      a.rel = "noopener";
+      news.append(a);
+    });
+    li.append(btn, news);
     ol.append(li);
   });
 

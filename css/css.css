@@ -69,14 +69,17 @@ select {
   grid-template-columns: 26px 1fr;
   column-gap: 10px;
   width: 100%;
-  padding: 12px 16px;
+  padding: 12px 16px 6px;
   border: 0;
-  border-bottom: 1px solid var(--line);
   background: none;
   text-align: left;
   cursor: pointer;
 }
 .spot:hover { background: var(--soft); }
+#spots li { border-bottom: 1px solid var(--line); }
+.news { padding: 0 16px 12px 52px; font-size: 13px; }
+.news summary { width: fit-content; color: var(--accent); cursor: pointer; }
+.news a { display: inline-block; margin: 8px 12px 0 0; }
 .rank {
   grid-row: span 2;
   width: 24px;
