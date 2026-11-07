@@ -29,7 +29,7 @@ async function getData() {
   const sel_sido = sido.value, sel_gugun = gugun.value, sel_year = year.value;
 
   if (sel_sido == "" || sel_gugun == "") {
-    alert("지역을 선택하세요.");
+    alert("지역을 선택해 주세요.");
     return;
   }
   if (sel_year == "") {
@@ -37,7 +37,7 @@ async function getData() {
     return;
   }
   if (!map) {
-    alert("지도를 불러오는 중입니다. 잠시 후 다시 시도해주세요.");
+    alert("지도를 불러오는 중입니다. 잠시 후 다시 시도해 주세요.");
     return;
   }
 
@@ -48,7 +48,7 @@ async function getData() {
     if (!response.ok) throw new Error(response.status);
     list = (await response.json())[`${sel_sido}-${sel_gugun}`] ?? [];
   } catch (e) {
-    alert("데이터를 불러오지 못했습니다. 잠시 후 다시 시도해주세요.");
+    alert("데이터를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.");
     return;
   }
 
@@ -68,7 +68,7 @@ function drawMap(spots, title, prefix = "") {
 
   document.getElementById("panel-title").textContent = title;
   const hint = document.getElementById("panel-hint");
-  hint.textContent = "찾으시는 결과가 없습니다. 다른 지역이나 연도를 선택해 주세요.";
+  hint.textContent = "결과가 없습니다. 다른 지역이나 연도를 선택해 주세요.";
   hint.hidden = spots.length > 0;
 
   const bounds = new google.maps.LatLngBounds();
