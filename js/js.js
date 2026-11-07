@@ -22,14 +22,21 @@ const el = (tag, cls, text = "") => {
 const detail = (s) =>
   `사고 ${s.occrrnc_cnt}건 (사상자 ${s.caslt_cnt}명)\n사망 ${s.dth_dnv_cnt} · 중상 ${s.se_dnv_cnt} · 경상 ${s.sl_dnv_cnt} · 부상신고 ${s.wnd_dnv_cnt}`;
 
-// 지점명으로 만든 검색어에 선택한 연도의 기간 필터를 붙인 뉴스 검색 링크
+// 뉴스 검색 링크. 검색어가 길수록 결과가 없어서 "동 단위"(넓게)와 "지점 단위"(좁게) 두 가지를 만들고,
+// 선택한 연도는 기간 필터로 붙인다. 지점명 형식: "서울특별시 동대문구 용두동(마장동사거리 부근)"
 function newsLinks(spot, year) {
-  const q = spot.spot_nm.replace(/[()]/g, " ").replace(/부근/g, " ").replace(/\s+/g, " ").trim() + " 자전거 사고";
-  const enc = encodeURIComponent(q);
-  return {
-    naver: `https://search.naver.com/search.naver?where=news&query=${enc}&nso=so:r,p:from${year}0101to${year}1231`,
-    google: `https://www.google.com/search?q=${enc}&tbm=nws&tbs=${encodeURIComponent(`cdr:1,cd_min:1/1/${year},cd_max:12/31/${year}`)}`,
+  const [area, rest = ""] = spot.spot_nm.split("(");
+  const dong = area.trim().split(/\s+/).slice(-2).join(" ");
+  const place = rest.replace(/[()]|부근/g, " ").replace(/\s+/g, " ").trim();
+  const link = (label, q) => {
+    const enc = encodeURIComponent(`${q} 자전거 사고`);
+    return {
+      label, q: `${q} 자전거 사고`,
+      naver: `https://search.naver.com/search.naver?where=news&query=${enc}&nso=so:r,p:from${year}0101to${year}1231`,
+      google: `https://www.google.com/search?q=${enc}&tbm=nws&tbs=${encodeURIComponent(`cdr:1,cd_min:1/1/${year},cd_max:12/31/${year}`)}`,
+    };
   };
+  return place ? [link("동 단위", dong), link("지점 단위", `${dong} ${place}`)] : [link("동 단위", dong)];
 }
 
 async function getData() {
@@ -106,15 +113,19 @@ function drawMap(spots, title, prefix = "", year) {
       show();
     };
     const li = document.createElement("li");
-    const links = newsLinks(spot, year);
     const news = el("details", "news");
-    news.append(el("summary", "", "관련 뉴스"));
-    [["네이버 뉴스", links.naver], ["구글 뉴스", links.google]].forEach(([text, href]) => {
-      const a = el("a", "", `${text} (${year}년)`);
-      a.href = href;
-      a.target = "_blank";
-      a.rel = "noopener";
-      news.append(a);
+    news.append(el("summary", "", `관련 뉴스 · ${year}년`));
+    newsLinks(spot, year).forEach(({ label, naver, google }) => {
+      const row = el("div", "news-row");
+      row.append(el("span", "", label));
+      [["네이버", naver], ["구글", google]].forEach(([text, href]) => {
+        const a = el("a", "", text);
+        a.href = href;
+        a.target = "_blank";
+        a.rel = "noopener";
+        row.append(a);
+      });
+      news.append(row);
     });
     li.append(btn, news);
     ol.append(li);

@@ -79,7 +79,9 @@ select {
 #spots li { border-bottom: 1px solid var(--line); }
 .news { padding: 0 16px 12px 52px; font-size: 13px; }
 .news summary { width: fit-content; color: var(--accent); cursor: pointer; }
-.news a { display: inline-block; margin: 8px 12px 0 0; }
+.news-row { margin-top: 8px; }
+.news-row span { margin-right: 10px; color: var(--muted); }
+.news-row a { margin-right: 10px; }
 .rank {
   grid-row: span 2;
   width: 24px;
