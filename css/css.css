@@ -92,11 +92,13 @@ select {
 .name { font-weight: 500; line-height: 1.4; }
 .meta { margin-top: 2px; color: var(--muted); font-size: 13px; line-height: 1.5; white-space: pre-line; }
 
-dialog { border: 0; border-radius: 12px; max-width: min(420px, calc(100vw - 32px)); padding: 20px; color: var(--text); }
+dialog { word-break: keep-all; border: 0; border-radius: 12px; max-width: min(460px, calc(100vw - 32px)); padding: 24px; color: var(--text); }
 dialog::backdrop { background: rgba(0, 0, 0, .4); }
 dialog h2 { margin: 0 0 8px; font-size: 17px; }
+dialog h3 { margin: 16px 0 6px; font-size: 14px; }
 dialog p { margin: 0 0 10px; line-height: 1.7; }
-dialog .source { color: var(--muted); font-size: 13px; }
+dialog ol, dialog ul { margin: 0 0 10px; padding-left: 20px; line-height: 1.7; }
+dialog .source { margin-top: 16px; color: var(--muted); font-size: 13px; }
 dialog button { height: 36px; padding: 0 18px; border: 0; border-radius: 8px; background: var(--accent); color: #fff; cursor: pointer; }
 
 @media (max-width: 720px) {
