@@ -44,26 +44,27 @@ async function getData() {
     return;
   }
 
-  drawMap(list.map((spot) => [spot.spot_nm, spot.la_crd, spot.lo_crd]));
+  drawMap(list);
 }
 
-// locations = [ ["지역이름", 위도, 경도], ... ]
-function drawMap(locations) {
+// spots = API 응답의 item 배열
+function drawMap(spots) {
   const map = new google.maps.Map(document.getElementById("map"), {
     mapTypeId: google.maps.MapTypeId.ROADMAP,
   });
   const infowindow = new google.maps.InfoWindow();
   const bounds = new google.maps.LatLngBounds();
 
-  locations.forEach(([name, lat, lng]) => {
-    const position = new google.maps.LatLng(lat, lng);
+  spots.forEach((spot) => {
+    const position = new google.maps.LatLng(spot.la_crd, spot.lo_crd);
     const marker = new google.maps.Marker({ position, map });
     bounds.extend(position);
 
     // 핀 클릭했을 때 보여주는 정보 (텍스트로만 넣어 HTML 해석 방지)
     marker.addListener("click", () => {
       const div = document.createElement("div");
-      div.textContent = name;
+      div.style.whiteSpace = "pre-line";
+      div.textContent = `${spot.spot_nm}\n사고 ${spot.occrrnc_cnt}건 (사상자 ${spot.caslt_cnt}명)\n사망 ${spot.dth_dnv_cnt} · 중상 ${spot.se_dnv_cnt} · 경상 ${spot.sl_dnv_cnt} · 부상신고 ${spot.wnd_dnv_cnt}`;
       infowindow.setContent(div);
       infowindow.open(map, marker);
     });
