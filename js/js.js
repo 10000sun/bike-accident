@@ -1,5 +1,3 @@
-const API_KEY = `vDX%2FUI2gzJeT6CJM1otu39l%2Byx0prw9aeTusQVSZCK9QkcGOX9oViiRL8uZLh7ftTKTxfEjlAKtdRpbG%2BSk3WA%3D%3D`;
-
 async function getData() {
   const sel_sido = document.getElementById('Sido').value;
   const sel_gugun = document.getElementById('Gugun').value;
@@ -18,22 +16,12 @@ async function getData() {
     return;
   }
 
-  // 2023년부터 강원(42→51), 전북(45→52) 시도 코드가 바뀜 (공식 코드표 3.2)
-  const sido = sel_year >= 2023 ? ({ 42: 51, 45: 52 }[sel_sido] ?? sel_sido) : sel_sido;
-
-  const PAGE = 100;
-  const base = `https://apis.data.go.kr/B552061/frequentzoneBicycle/getRestFrequentzoneBicycle?ServiceKey=${API_KEY}&SearchYearCd=${sel_year}&siDo=${sido}&guGun=${sel_gugun}&type=json&numOfRows=${PAGE}`;
-
-  // 결과가 없으면 item이 없고, 1건이면 배열이 아닌 객체로 올 수 있어 concat으로 합침
-  let list = [];
+  // data/<연도>.json 은 scripts/fetch-data.js 로 미리 받아 둔 파일 (키: "시도값-구군값")
+  let list;
   try {
-    for (let page = 1; ; page++) {
-      const response = await fetch(`${base}&pageNo=${page}`);
-      if (!response.ok) throw new Error(response.status);
-      const data = await response.json();
-      list = list.concat(data?.items?.item ?? []);
-      if (page * PAGE >= (data.totalCount ?? 0)) break;
-    }
+    const response = await fetch(`data/${sel_year}.json`);
+    if (!response.ok) throw new Error(response.status);
+    list = (await response.json())[`${sel_sido}-${sel_gugun}`] ?? [];
   } catch (e) {
     alert("데이터를 불러오지 못했습니다. 잠시 후 다시 시도해주세요.");
     return;
