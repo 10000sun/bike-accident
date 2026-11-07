@@ -33,7 +33,7 @@ async function getData() {
     return;
   }
   if (sel_year == "") {
-    alert("년도를 선택하세요.");
+    alert("연도를 선택해 주세요.");
     return;
   }
   if (!map) {
@@ -68,7 +68,7 @@ function drawMap(spots, title, prefix = "") {
 
   document.getElementById("panel-title").textContent = title;
   const hint = document.getElementById("panel-hint");
-  hint.textContent = "찾으시는 결과가 없습니다. 다른 지역이나 년도를 선택해주세요.";
+  hint.textContent = "찾으시는 결과가 없습니다. 다른 지역이나 연도를 선택해 주세요.";
   hint.hidden = spots.length > 0;
 
   const bounds = new google.maps.LatLngBounds();
