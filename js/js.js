@@ -59,15 +59,12 @@ async function getData() {
   }
 
   // data/<연도>.json 은 scripts/fetch-data.js 로 미리 받아 둔 파일 (키: "시도값-구군값")
-  let list;
-  try {
-    const response = await fetch(`data/${sel_year}.json`);
-    if (!response.ok) throw new Error(response.status);
-    list = (await response.json())[`${sel_sido}-${sel_gugun}`] ?? [];
-  } catch (e) {
+  await ready;
+  if (!db[sel_year]) {
     alert("데이터를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.");
     return;
   }
+  const list = db[sel_year][`${sel_sido}-${sel_gugun}`] ?? [];
 
   // 세종처럼 시도와 구군 이름이 같으면 한 번만 표시
   const area = [...new Set([sido.selectedOptions[0].text, gugun.selectedOptions[0].text])].join(" ");
@@ -140,9 +137,25 @@ function drawMap(spots, title, prefix = "", year) {
   }
 }
 
-// 연도 목록: 작년부터 2012년까지 (데이터가 없으면 "결과 없음" 안내가 뜸)
+// 연도 목록: 작년부터 2012년까지. data/<연도>.json 을 미리 읽어(약 1.3MB, 브라우저 캐시) 데이터가 있는 연도·지역만 선택 가능하게 한다
 const yearSelect = document.getElementById('SearchYear');
+const db = {}; // 연도 -> {"시도-구군": [지점...]}
 for (let y = new Date().getFullYear() - 1; y >= 2012; y--) yearSelect.add(new Option(`${y}년`, y));
+const ready = Promise.all([...yearSelect.options].slice(1).map(async ({ value: y }) => {
+  try { db[y] = await (await fetch(`data/${y}.json`)).json(); } catch (e) { /* 못 받은 연도는 비활성 */ }
+})).then(refresh);
+
+// 나머지 두 선택값에 맞춰 데이터가 없는 시도/구군/연도 옵션을 비활성화
+function refresh() {
+  const [s, g, y] = ['Sido', 'Gugun', 'SearchYear'].map((id) => document.getElementById(id).value);
+  const keys = (yr) => Object.keys(db[yr]).filter((k) => db[yr][k].length);
+  const years = y ? [y] : Object.keys(db);
+  const mark = (id, ok) => [...document.getElementById(id).options].slice(1).forEach((o) => (o.disabled = !ok(o.value)));
+  const inRegion = (k) => (g ? k === `${s}-${g}` : s ? k.startsWith(`${s}-`) : true);
+  mark('Sido', (v) => years.some((yr) => keys(yr).some((k) => k.startsWith(`${v}-`))));
+  mark('Gugun', (v) => years.some((yr) => keys(yr).includes(`${s}-${v}`)));
+  mark('SearchYear', (v) => db[v] && keys(v).some(inRegion));
+}
 
 var Gugun_num = new Array();
 var Gugun_name = new Array();
@@ -202,8 +215,8 @@ Gugun_name[50] = new Array('서귀포시', '제주시');
 function Sido_change(key, sel) {
   sel.length = 1; // 첫 번째 "구군 선택" 옵션만 남김
   sel.selectedIndex = 0;
-  if (key == '') return;
-  Gugun_name[key].forEach((name, i) => sel.add(new Option(name, Gugun_num[key][i])));
+  if (key != '') Gugun_name[key].forEach((name, i) => sel.add(new Option(name, Gugun_num[key][i])));
+  refresh();
 }
 
 function explain(){

@@ -37,10 +37,10 @@
         <option value="48">경상남도</option>
         <option value="50">제주특별자치도</option>
       </select>
-      <select id="Gugun" name="Gugun" aria-label="구군">
+      <select id="Gugun" name="Gugun" aria-label="구군" onchange="refresh()">
         <option value="">구군 선택</option>
       </select>
-      <select id="SearchYear" name="SearchYear" aria-label="연도">
+      <select id="SearchYear" name="SearchYear" aria-label="연도" onchange="refresh()">
         <option value="">연도 선택</option>
       </select>
       <button type="button" id="searchbtn" onclick="getData()">검색</button>
@@ -73,7 +73,7 @@
     <ul>
       <li>다발 지역은 반경 약 200m 안에서 사고가 4건 이상(사망 사고가 있으면 3건 이상) 발생한 지점입니다.</li>
       <li>연 1회 갱신되는 과거 통계라서 현재의 위험도를 그대로 뜻하지는 않습니다.</li>
-      <li>지역과 연도에 따라 데이터가 없을 수 있습니다.</li>
+      <li>데이터가 없는 지역·연도는 선택할 수 없도록 회색으로 표시됩니다.</li>
     </ul>
     <p class="source">출처: 한국도로교통공단 자전거사고 다발지역정보 (공공데이터포털)<br>오류·문의: <a href="https://www.github.com/10000sun/bike-accident" target="_blank" rel="noopener">GitHub</a> 또는 lws302@naver.com</p>
     <form method="dialog"><button>닫기</button></form>
